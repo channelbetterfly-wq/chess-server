@@ -30,6 +30,18 @@ let idCounter = 1;
 
 const LOBBY_TTL_MS = 5 * 60 * 1000;   // сколько живёт неподхваченная заявка
 
+// Контроли времени должны совпадать с TIME_CONTROLS в клиенте (Main.gd).
+// Секунды на всю партию. moveTime — мягкий лимит на ход, масштабируем от
+// базы, чтобы у пули он был короткий, а у классики — большой.
+const TIME_CONTROLS = {
+  bullet:   { seconds: 60,   moveTime: 10 },
+  blitz:    { seconds: 180,  moveTime: 20 },
+  rapid:    { seconds: 600,  moveTime: 60 },
+  classic:  { seconds: 1800, moveTime: 120 },
+  marathon: { seconds: 3600, moveTime: 300 },
+};
+function tcOf(id) { return TIME_CONTROLS[id] || TIME_CONTROLS.rapid; }
+
 console.log("♔ Chess Academy Server v4 — lobby on port " + PORT);
 
 wss.on("connection", (ws) => {
@@ -76,7 +88,8 @@ function createLobbyGame(ws, data) {
     avatar: data.avatar || "0",
     createdAt: Date.now(),
     friendOnly: data.friendOnly || false,
-    friendCode: data.friendCode || ""
+    friendCode: data.friendCode || "",
+    tc: TIME_CONTROLS[data.tc] ? data.tc : "rapid"
   };
   ws._name = entry.name;
   lobby.push(entry);
@@ -102,7 +115,10 @@ function joinLobbyGame(ws, data) {
   games[gid] = {white: w.ws, black: b.ws, wName: w.name, bName: b.name};
   w.ws._gameId = gid; w.ws._color = "w";
   b.ws._gameId = gid; b.ws._color = "b";
-  const base = {type:"match_found", gameId:gid, whiteTime:300, blackTime:300, moveTime:10};
+  // Контроль времени берём из заявки создателя — он его выбрал.
+  const tc = tcOf(entry.tc);
+  const base = {type:"match_found", gameId:gid,
+    whiteTime:tc.seconds, blackTime:tc.seconds, moveTime:tc.moveTime, tc:entry.tc};
   safeSend(w.ws, {...base, color:"w", opponentName:b.name, opponentElo:b.elo, opponentAvatar:b.avatar});
   safeSend(b.ws, {...base, color:"b", opponentName:w.name, opponentElo:w.elo, opponentAvatar:w.avatar});
 }
@@ -110,7 +126,7 @@ function joinLobbyGame(ws, data) {
 function sendLobbyList(ws) {
   const list = lobby.filter(e => !e.friendOnly).map(e => ({
     id: e.id, name: e.name, elo: e.elo, avatar: e.avatar,
-    waited: Math.floor((Date.now() - e.createdAt) / 1000)
+    waited: Math.floor((Date.now() - e.createdAt) / 1000), tc: e.tc || "rapid"
   }));
   ws.send(JSON.stringify({type: "lobby_list", games: list}));
 }
@@ -168,7 +184,7 @@ function removeLobby(ws) {
 function broadcastLobby() {
   const list = lobby.filter(e => !e.friendOnly).map(e => ({
     id: e.id, name: e.name, elo: e.elo, avatar: e.avatar,
-    waited: Math.floor((Date.now() - e.createdAt) / 1000)
+    waited: Math.floor((Date.now() - e.createdAt) / 1000), tc: e.tc || "rapid"
   }));
   const msg = JSON.stringify({type: "lobby_list", games: list});
   wss.clients.forEach(c => { if(c.readyState === WebSocket.OPEN) c.send(msg); });
