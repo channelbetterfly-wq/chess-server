@@ -7,7 +7,11 @@ const PORT = process.env.PORT || 8080;
 // GET-запросом и усыпляют его, если порт не отвечает по HTTP; плюс так
 // удобно проверить в браузере, что сервер поднялся.
 const httpServer = http.createServer((req, res) => {
-  if (req.url === "/app-ads.txt") {
+   if (req.url === "/privacy_policy.html") {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chess Academy — Privacy Policy</title><style>body{font-family:system-ui;max-width:760px;margin:0 auto;padding:40px 20px;color:#e6e8ef;background:#0a0e1a;line-height:1.65}h1,h2{color:#f0c674}a{color:#8fd3ff}.muted{color:#98a0b3;font-size:14px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #232a3d;padding:8px;text-align:left}th{background:#121828;color:#f0c674}footer{margin-top:40px;border-top:1px solid #232a3d;padding-top:16px}</style></head><body><h1>Chess Academy — AI Chess</h1><p class="muted">Privacy Policy · Last updated: 8 August 2026</p><p>Your profile data is stored only on your device. We do not upload it to any server.</p><h2>1. Data stored on your device</h2><p>Nickname, avatar, ELO rating, coins, game statistics — stored only on your device. Uninstalling deletes it permanently.</p><h2>2. Online play</h2><p>Nickname, rating and moves are sent to the game server only during online play. Games are not recorded after they finish.</p><h2>3. Advertising</h2><p>Ads provided by Google AdMob. Google may collect: Advertising ID, approximate location from IP, device model and OS. See <a href="https://policies.google.com/technologies/partner-sites">Google Privacy Policy</a>.</p><h2>4. Purchases</h2><p>In-app purchases handled entirely by Google Play Billing. Your payment details are never seen by us.</p><h2>5. Children</h2><p>The Game is not directed at children under 13.</p><h2>6. Contact</h2><p><a href="mailto:channelbetterfly@gmail.com">channelbetterfly@gmail.com</a></p><footer class="muted">Chess Academy — AI Chess · Developer: Davlatshoh Murodov · Samarkand, Uzbekistan</footer></body></html>`);
+    return;
+  } if (req.url === "/app-ads.txt") {
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end("google.com, pub-6241200520407644, DIRECT, f08c47fec0942fa0\n");
     return;
