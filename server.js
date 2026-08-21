@@ -7,7 +7,11 @@ const PORT = process.env.PORT || 8080;
 // GET-запросом и усыпляют его, если порт не отвечает по HTTP; плюс так
 // удобно проверить в браузере, что сервер поднялся.
 const httpServer = http.createServer((req, res) => {
-  if (req.url === "/health" || req.url === "/") {
+  if (req.url === "/app-ads.txt") {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("google.com, pub-6241200520407644, DIRECT, f08c47fec0942fa0\n");
+    return;
+  }  if (req.url === "/health" || req.url === "/") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({
       status: "ok",
